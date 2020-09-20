@@ -1,0 +1,10 @@
+#pip install -r requirements.txt
+#
+Django
+djangorestframework
+django-filter
+django-rest-framework
+django-cors-headers
+tailer
+serializers
+mangorest
