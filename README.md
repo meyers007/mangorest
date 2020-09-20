@@ -2,6 +2,8 @@
 
 ## What is this about?  
 
+Create Web service in less than a minute for any python function
+
 It is about very minmal and quick way to deploy web services super fast; yet again have very robust control if needed;
 
 * In future, it will extend extensive security control that can be implemented if needed
@@ -11,30 +13,45 @@ It is about very minmal and quick way to deploy web services super fast; yet aga
 
 ## How to use it
 
-```
+See Examples in test directory here: https://github.com/meyers007/mangorest/blob/master/test/oth.py
+
+STEP 1.
+>>```
 pip install mangorest
-```
-TBD
-
-
-## In your notebook
-
-```
-%reload_ext autoreload
-%autoreload 2
-import colabexts
-from colabexts.jcommon import *
-
-jpath=os.path.dirname(colabexts.__file__)
-jcom = f'{jpath}/jcommon.ipynb'
-%run $jcom
 
 ```
 
+STEP 2: Create a file or copy below into any python file ex: absmin.py- for ex:
 
-# Copyright 2020
+>> ```
+#!/usr/local/bin/python
+import mangorest
+import myfile
+    
+mangorest.__VERSION__ = "1.1"
+mangorest.PORT        = 9000
+if __name__ == '__main__' and not mangorest.inJupyter():
+    print(f'** NOTICE *** registered URLS: {mangorest._WEBAPI_ROUTES.keys()}')
+    mangorest.main()
+    pass    
+```
 
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+STEP 3: In your python files, decorate your functions with @webapi as below
+```
+from  mangorest import webapi
+
+@webapi
+def ws1(h='param1', **kwargs):
+    ret = (f"Web Service {h} {kwargs}")
+    return ret
+
+@webapi("/ws2")
+def ws2(**kwargs):
+    ret = (f"Web service 2 {kwargs}")
+    return ret
+```
 
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+
+# Apache License 

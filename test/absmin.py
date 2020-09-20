@@ -1,6 +1,6 @@
 #!/usr/local/bin/python
 import mangorest
-import oth
+import myfile
     
 mangorest.__VERSION__ = "1.1"
 mangorest.PORT        = 9000
