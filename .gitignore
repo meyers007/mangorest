@@ -1,0 +1,15 @@
+.R*
+__py*
+OLD
+nohup*
+.i*
+no-git
+LMCO/data
+*temp*
+.DS*
+*egg*
+__p*
+Jupytils.egg*
+build/*
+dist/*
+*.BAK
