@@ -1,4 +1,4 @@
-# Super Fast Django Webservice Deployment 
+# Deploy Sophisticated Python Django Webservice  in Less Than a Minute
 
 ## What is this about?  
 
@@ -18,7 +18,7 @@ See Examples in test directory here: https://github.com/meyers007/mangorest/blob
 STEP 1.
 
 ```
-pip install mangorest
+pip install Django, serializers, mangorest
 ```
 
 STEP 2: decorate your functions with @webapi - see example below
