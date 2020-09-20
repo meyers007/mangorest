@@ -26,8 +26,7 @@ STEP 2: decorate your functions with @webapi - see example below
 
 ```
 #---- myfile.py----
-
-from  mangorest import webapi
+from  mangorest.mango import webapi
 
 @webapi
 def ws1(h='param1', **kwargs):
@@ -38,30 +37,28 @@ def ws1(h='param1', **kwargs):
 def ws2(**kwargs):
     ret = (f"Web service 2 {kwargs}")
     return ret
+    
 ```
 
 
-STEP 3: import myfile ex: absmin.py- for ex:
+STEP 3: import myfile in another file ex: simple.py - for ex:
 
 ```
-#---- myfile.py----
-
-import mangorest
+import mangorest.mango
 import myfile
     
-mangorest.__VERSION__ = "1.1"
-mangorest.PORT        = 9000
-if __name__ == '__main__' and not mangorest.inJupyter():
-    print(f'** NOTICE *** registered URLS: {mangorest._WEBAPI_ROUTES.keys()}')
-    mangorest.main()
+mangorest.mango.__VERSION__ = "1.1"
+mangorest.mango.PORT        = 9000
+if __name__ == '__main__' and not mangorest.mango.inJupyter():
+    print(f'** NOTICE *** registered URLS: {mangorest.mango._WEBAPI_ROUTES.keys()}')
+    mangorest.mango.main()
     pass    
 ```
-
 
 STEP 4: run 
 
 ```
-python myfile 
+python simple 
 ```
 
 STEP 5: finally visit http://localhost:9000 OR http://localhost:9000/ws1?h=wan OR http://localhost:9000/ws2 

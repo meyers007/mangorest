@@ -9,7 +9,7 @@ def test1(h='test1', **kwargs):
     print(ret)
     return ret
     
-@webapi("sada")
+@webapi("seattle_univ")
 def test2(request, h="test2", **kwargs):
     ret = (f"Hello Test2 {h} {kwargs} {request.headers}")
     ret = (f"Hello Test2 {h} {kwargs}")
