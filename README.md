@@ -1,4 +1,4 @@
-# Very Minimal Django Webservice Deployment 
+# Super Fast Django Webservice Deployment 
 
 ## What is this about?  
 
@@ -16,28 +16,17 @@ It is about very minmal and quick way to deploy web services super fast; yet aga
 See Examples in test directory here: https://github.com/meyers007/mangorest/blob/master/test/oth.py
 
 STEP 1.
->>```
+
+```
 pip install mangorest
-
 ```
 
-STEP 2: Create a file or copy below into any python file ex: absmin.py- for ex:
+STEP 2: decorate your functions with @webapi - see example below
+(Please use kwargs for your own sanity)
 
->> ```
-#!/usr/local/bin/python
-import mangorest
-import myfile
-    
-mangorest.__VERSION__ = "1.1"
-mangorest.PORT        = 9000
-if __name__ == '__main__' and not mangorest.inJupyter():
-    print(f'** NOTICE *** registered URLS: {mangorest._WEBAPI_ROUTES.keys()}')
-    mangorest.main()
-    pass    
 ```
+#---- myfile.py----
 
-STEP 3: In your python files, decorate your functions with @webapi as below
-```
 from  mangorest import webapi
 
 @webapi
@@ -52,6 +41,41 @@ def ws2(**kwargs):
 ```
 
 
+STEP 3: import myfile ex: absmin.py- for ex:
+
+```
+#---- myfile.py----
+
+import mangorest
+import myfile
+    
+mangorest.__VERSION__ = "1.1"
+mangorest.PORT        = 9000
+if __name__ == '__main__' and not mangorest.inJupyter():
+    print(f'** NOTICE *** registered URLS: {mangorest._WEBAPI_ROUTES.keys()}')
+    mangorest.main()
+    pass    
+```
+
+
+STEP 4: run 
+
+```
+python myfile 
+```
+
+STEP 5: finally visit http://localhost:9000 OR http://localhost:9000/ws1?h=wan OR http://localhost:9000/ws2 
+
+**THAT IS ALL**
+
+With little more effort, you can 
+
+* deploy it on gunicorn, 
+* secure it, 
+* deploy it on cloud or open shift, 
+* collect statistics
+* autorize with APK tokents and issue to throttle the requests
+* Many more and best of all, you can extend it beyond
 
 
 # Apache License 
