@@ -234,7 +234,7 @@ def main():
     argv = [c for c in sys.argv]
     if len(argv) <= 1:
         print(f"** NOTICE ***\n\nTry running: {sys.argv[0]} runserver 0:9000 #to run on port 9000\n***\n")
-        argv.extend(["runserver", f"0:{PORT}"])
+        argv.extend(["runserver", f"0:{PORT}"])|
     execute_from_command_line(argv)
 
 urlpatterns = (

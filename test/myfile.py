@@ -1,4 +1,4 @@
-from  mangorest import webapi
+from  mangorest.mangorest import webapi
 
 @webapi
 def ws1(h='param1', **kwargs):
