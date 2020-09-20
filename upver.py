@@ -1,5 +1,4 @@
-import re
-import os
+import re, os
 
 with open( 'setup.py', 'r') as f:
 	txt = f.read()

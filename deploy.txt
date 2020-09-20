@@ -1,7 +1,7 @@
 #Packaging 
 #=========
 #[ ]
-\rm -rf dist mangorest/__pycache__
+\rm -rf dist build mangorest/__pycache__
 python upver.py
 VER=`cat mangorest/version.txt `
 echo "Installing VERSION: $VER" 
