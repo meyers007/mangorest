@@ -19,5 +19,5 @@ with open('setup.py.BAK', 'w') as f:
 	f.write(txt);
 with open('setup.py', 'w') as f:
 	f.write(ntxt);
-with open('colabexts/version.txt', 'w') as f:
+with open('mangorest/version.txt', 'w') as f:
 	f.write(nv);
