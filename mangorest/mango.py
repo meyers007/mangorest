@@ -1,5 +1,5 @@
 #!/usr/local/bin/python
-import sys, os,datetime, pkgutil, inspect,hashlib, json
+import sys, os,datetime, pkgutil, inspect,hashlib, json, django
 from django.conf.urls import url
 from django.urls import path
 #from django.shortcuts import render
@@ -25,7 +25,7 @@ PORT        = 9000
 def index(request):
     return HttpResponse(f"Version: {__VERSION__}");
 #--------------------------------------------------------------------------------
-DEBUG=1
+DEBUG=0
 def logp(*args, **kwargs):
     if not DEBUG:
         return;
@@ -91,11 +91,13 @@ def CallMethod(method, request, args=None):
     
     #logp(f'returning {ret} {type(ret)}')
     
+    if (isinstance(ret, django.http.response.HttpResponseBase) ):
+        return ret;
+    
     if (type(ret) != str):
-        if (type(ret) != HttpResponse):
-            ret = json.dumps(ret, cls=myEncoder)
+        ret = json.dumps(ret, cls=myEncoder)
         
-    return HttpResponse(ret, content_type="text/plain")
+    return HttpResponse(ret) #, content_type="text/plain")
 #--------------------------------------------------------------------------------
 def TryRunPyMethod(request):
     rpaths = [c for c in request.path.split("/") if (c) ];
@@ -129,11 +131,10 @@ USE following methods to pass in AUTH Key:
     curl -i -H "APK: 123"  http://localhost:9000
 '''
 def AuthorizeAPIKEY(request):
-    #logp(f"ViewCommon: KWARGS:Calling ...");
     apk = request.headers.get("APK", "")
     apk = apk or request.GET.get("APK", "?")
     apk = apk or request.POST.get("APK", "")
-    print(f"====> FOUND {request.path} {apk} ++")
+    # print(f"====> FOUND {request.path} {apk} ++")
     # Validate APK Key and return "Eror Description"
 
 def AuthorizeNone(request):
@@ -146,13 +147,28 @@ def CommonSecured(request, apage):
     return render(request, apage)
 #--------------------------------------------------------------------------------
 def Common(request):
-    path = request.path
+    path = request.path[:-1] if request.path.endswith("/") else request.path
     if ( path.endswith("favicon.ico")):
         return HttpResponse(f"{path}!!");
     
+    # Check for authorizaton and version request
     authError = AUTH_METHOD(request)
     if ( authError ):
         return HttpResponse(f"{path} -- {authError}!!");
+
+    # Next STEP 1: check with registered URLS
+    logp(f'*Check: {path} registered URLS: {_WEBAPI_ROUTES.keys()}')
+    
+    if (path in _WEBAPI_ROUTES.keys() ):
+        f, args, auth, opts = _WEBAPI_ROUTES[path]
+        if ( auth ):
+            ret = auth(request)
+            if ( ret ):
+                return HttpResponse(f"{path} -- {authError}!!"); 
+        return CallMethod(f,request, args)
+
+
+    # If not in the registered do templates:
     
     rpaths = [c for c in path.split("/") if (c)];
     if (len(rpaths) < 1):
@@ -168,27 +184,24 @@ def Common(request):
         return CommonSecured(request, rpath)
     elif ( os.path.exists(template) ):
         return render(request, rpath)
-    elif rpaths[-1].find("modules.") >= 0: #Must be a python module call
+    elif rpaths[-1].find("services.") >= 0: #Must be a python module call
         logp("**** Getting python Module")
         return TryRunPyMethod(request)
-    else:
-        m = rpaths[-1]
-        logp(f'*Now trying: {m} registered URLS: {_WEBAPI_ROUTES.keys()}')
-        
-        if (m not in _WEBAPI_ROUTES.keys() ):
-            return HttpResponse(f"{m} in {path} not understood");
-        
-        f, args = _WEBAPI_ROUTES[m]
-        return CallMethod(f,request, args)
+    
+    return HttpResponse(f"{path} not understood");
+    
 #--------------------------------------------------------------------------------
 _WEBAPI_ROUTES={}
-def webapi(url):
+def webapi(url, auth=None, **kwargs):
+    if auth and not inspect.isfunction(auth):
+        auth = AuthorizeAPIKEY
+        
     if type(url) is not str:
         f = url
-        url = f'{f.__module__}.{f.__name__}'
+        url = f'/{f.__module__}.{f.__name__}'
         m = inspect.getfullargspec(f)
         print(f"Registering url: {url} {f} {type(url)}")
-        _WEBAPI_ROUTES[url] = [f, m]
+        _WEBAPI_ROUTES[url] = [f, m, auth, kwargs]
         
         return f
     
@@ -197,9 +210,10 @@ def webapi(url):
             print(f"Warning: Duplicate registration: {url} ")
 
         m = inspect.getfullargspec(f)
-        url1 = url[1:] if url.startswith("/") else url
-            
-        _WEBAPI_ROUTES[url1] = [f, m]
+        url1 = url if url.startswith("/") else "/"+url
+        url1 = url1[:-1] if url1.endswith("/") else url1
+        
+        _WEBAPI_ROUTES[url1] = [f, m, auth, kwargs]
 
         return f
 
@@ -209,10 +223,10 @@ def inJupyter():
     try:    get_ipython; return True
     except: return False
 #--------------------------------------------------------------------------------
-SECRET       = f'{os.name}{os.getcwd()}{datetime.datetime.now()}'
-DEBUG        = True,
-SECRET_KEY   =  hashlib.md5(bytes(SECRET, 'utf-8')),
-ALLOWED_HOSTS= ['*'],
+SECRET        = f'{os.name}{os.getcwd()}{datetime.datetime.now()}'
+DEBUG         = True
+SECRET_KEY    = hashlib.sha224(bytes(SECRET, 'utf-8')).hexdigest()
+ALLOWED_HOSTS = ['*']
 #--------------------------------------------------------------------------------
 def main():
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', __file__)

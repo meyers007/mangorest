@@ -1,4 +1,4 @@
-# Deploy Sophisticated Python Django Webservice  in Less Than a Minute
+# Deploy Python Django Webservice  in Less Than a Minute
 
 ## What is this about?  
 
