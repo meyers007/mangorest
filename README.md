@@ -4,7 +4,7 @@
 
 Create Web service in less than a minute for any python function
 
-It is about very minmal and quick way to deploy web services super fast; yet again have very robust control if needed;
+It is about very minimal and quick way to deploy web services super fast; yet again have very robust control if needed;
 
 * In future, it will extend extensive security control that can be implemented if needed
 * Support for authoriation and authentication
@@ -27,11 +27,6 @@ STEP 2: decorate your functions with @webapi - see example below
 ```
 #---- myfile.py----
 from  mangorest.mango import webapi
-
-@webapi
-def ws1(h='param1', **kwargs):
-    ret = (f"Web Service {h} {kwargs}")
-    return ret
 
 @webapi("/ws2")
 def ws2(**kwargs):
@@ -58,14 +53,14 @@ if __name__ == '__main__' and not mangorest.mango.inJupyter():
 STEP 4: run 
 
 ```
-python simple 
+python simple.py
 ```
 
-STEP 5: finally visit http://localhost:9000 OR http://localhost:9000/ws1?h=wan OR http://localhost:9000/ws2 
+STEP 5: finally visit http://localhost:9000 OR http://localhost:9000/ws2?h=tan OR http://localhost:9000/ws2 
 
 **THAT IS ALL**
 
-With little more effort, you can 
+With little more effort, you can - I will add these 
 
 * deploy it on gunicorn, 
 * secure it, 
