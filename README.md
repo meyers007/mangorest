@@ -11,6 +11,7 @@ It is about very minimal and quick way to deploy web services super fast; yet ag
 * Support very sophiscated control 
 * Support WSGI standards
 
+
 ## How to use it
 
 See Examples in test directory here: https://github.com/meyers007/mangorest/blob/master/test/oth.py
@@ -59,6 +60,17 @@ python simple.py
 STEP 5: finally visit http://localhost:9000 OR http://localhost:9000/ws2?h=tan OR http://localhost:9000/ws2 
 
 **THAT IS ALL**
+
+## Why?
+
+I write a lot of python code that needs to be deployed juts by tagging it with @webapi.
+There is nothing more to do. The framework automatically sends in the argumens in kwargs.
+
+There is no need to import any HTTP request objects or parse through them.
+I wanted my functions to be used in regular python and tested - at the same time become a web service.
+
+
+## Roadmap
 
 With little more effort, you can - I will add these 
 

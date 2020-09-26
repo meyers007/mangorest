@@ -2,7 +2,7 @@
 import sys, os,datetime, pkgutil, inspect,hashlib, json, django
 from django.conf.urls import url
 from django.urls import path
-#from django.shortcuts import render
+from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
