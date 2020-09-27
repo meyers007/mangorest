@@ -184,7 +184,7 @@ def Common(request):
         return CommonSecured(request, rpath)
     elif ( os.path.exists(template) ):
         return render(request, rpath)
-    elif rpaths[-1].find("services.") >= 0: #Must be a python module call
+    elif rpaths[-1].find("modules.") >= 0: #Must be a python module call
         logp("**** Getting python Module")
         return TryRunPyMethod(request)
     
