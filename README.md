@@ -8,8 +8,6 @@ It is about very minimal and quick way to deploy web services super fast; yet ag
 
 * In future, it will extend extensive security control that can be implemented if needed
 * Support for authoriation and authentication
-* Support very sophiscated control 
-* Support WSGI standards
 
 
 ## How to use it
