@@ -22,7 +22,7 @@ https://blog.miguelgrinberg.com/post/the-ultimate-guide-to-python-decorators-par
 https://simpleisbetterthancomplex.com/article/2017/08/07/a-minimal-django-application.html
 
 '''
-__VERSION__ = "1.0"
+__VERSION__ = "1.14"
 __NAME__    = ""
 PORT        = 9000
 #--------------------------------------------------------------------------------
@@ -61,7 +61,6 @@ def Debug(request, APPNAME=''):
 
 class myEncoder(DjangoJSONEncoder):
     def default(self, obj):
-        logp("============>. {obj} {typeof(obj)}")
         if isinstance(obj, np.int64):
             return int(obj)
         else:
@@ -72,14 +71,11 @@ def CallMethod(method, request, args=None):
         args = inspect.getfullargspec(method)
     
     if (args.varkw == None ):
-        #logp(f"ViewCommon: No kwargs?:Calling ...{method}(request)");
         return method(request)
     
-    #logp(f"ViewCommon: KWARGS:Calling ...");
     par = dict(request.GET)
     par.update(request.POST)
     
-    #paramters comes in as arrays 
     for k in par.keys():
         if len(par[k]) <= 1:
             par[k] = par[k][-1]  
@@ -93,8 +89,7 @@ def CallMethod(method, request, args=None):
             
         return JsonResponse(ret, safe=False)
     
-    #logp(f'returning {ret} {type(ret)}')
-    
+
     if (isinstance(ret, django.http.response.HttpResponseBase) ):
         return ret;
     
@@ -107,7 +102,6 @@ def TryRunPyMethod(request):
     rpaths = [c for c in request.path.split("/") if (c) ];
     pyMethod = rpaths[-1];
  
-    #logp(f"importing ... {pyMethod} ...")
     if ( pyMethod.find("modules.") < 0 ):
         return HttpResponse(f"{pyMethod} not understood 0")
         
