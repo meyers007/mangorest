@@ -17,7 +17,7 @@ See Examples in test directory here: https://github.com/meyers007/mangorest/blob
 STEP 1.
 
 ```
-pip install Django, serializers, mangorest
+pip install django, serializers, mangorest
 ```
 
 STEP 2: decorate your functions with @webapi - see example below
