@@ -88,7 +88,6 @@ def CallMethod(method, request, args=None):
             ret = json.loads(ret)
             
         return JsonResponse(ret, safe=False)
-    
 
     if (isinstance(ret, django.http.response.HttpResponseBase) ):
         return ret;
