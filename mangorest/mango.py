@@ -260,6 +260,7 @@ def main():
             CSRF_COOKIE_HTTPONLY  = False,
             CSRF_COOKIE_SECURE    = False,
             AUTHORIZE             = "", #Can be a Function, method,
+            MIDDLEWARE            = ['corsheaders.middleware.CorsMiddleware'],
             MIDDLEWARE_CLASSES=(
                 'django.middleware.common.CommonMiddleware',
             ),
