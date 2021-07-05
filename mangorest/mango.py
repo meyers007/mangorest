@@ -8,13 +8,12 @@ from django.urls import path
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.conf import settings
-from django.core.wsgi import get_wsgi_application
+from django.shortcuts import redirect
 from django.core.management import execute_from_command_line
 import numpy as np
+from proxy.views import proxy_view
 
 '''
 References: 
@@ -134,13 +133,17 @@ def AuthorizeAPIKEY(request):
     # print(f"====> FOUND {request.path} {apk} ++")
     # Validate APK Key and return "Eror Description"
 
-def AuthorizeNone(request):
+#--------------------------------------------------------------------------------
+@login_required(login_url='/accounts/login/')
+def Authorize(request):
         return ""
-    
-AUTH_METHOD = AuthorizeNone
 #--------------------------------------------------------------------------------
 @login_required(login_url='/accounts/login/')
 def CommonSecured(request, apage):
+    authError = Authorize(request)
+    if (  authError ):
+        return HttpResponse(f"{path} -- {authError}!!");
+    
     return render(request, apage)
 #--------------------------------------------------------------------------------
 def showroutes(request):
@@ -168,11 +171,6 @@ def Common(request):
     if ( path.endswith("favicon.ico")):
         return HttpResponse(f"{path}!!");
     
-    # Check for authorizaton and version request
-    authError = AUTH_METHOD(request)
-    if ( authError ):
-        return HttpResponse(f"{path} -- {authError}!!");
-
     # Next STEP 1: check with registered URLS
     logp(f'*Check: {path} registered URLS: {_WEBAPI_ROUTES.keys()}')
     
@@ -184,16 +182,25 @@ def Common(request):
         if ( auth ):
             ret = auth(request)
             if ( ret ):
-                return HttpResponse(f"{path} -- {authError}!!"); 
+                return HttpResponse(f"{path} -- {ret}!!");
         return CallMethod(f,request, args)
 
-
     # If not in the registered do templates:
-    
     rpaths = [c for c in path.split("/") if (c)];
     if (len(rpaths) < 1):
         return index(request)
+
+    # Check if it is a proxy request and we have proxy registered
+
+    if rpaths[0] == "proxy":
+        url = request.GET.get("url",None)
+        if not url:
+            url = request.POST.get("url", None)
+        if (url):
+            response = proxy_view(request, url)
+            return response
     
+    # Check for Templates
     template = f"{rpaths[0]}/templates/{'/'.join(rpaths[1:])}";
     rpath    = "/".join(rpaths[1:]);
     

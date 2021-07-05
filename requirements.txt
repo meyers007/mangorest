@@ -3,6 +3,7 @@
 Django
 djangorestframework
 django-filter
+django-proxy
 django-rest-framework
 django-cors-headers
 tailer
