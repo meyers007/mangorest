@@ -166,6 +166,15 @@ def showroutes(request):
     ret += "</table>"
     return HttpResponse(ret)
 #--------------------------------------------------------------------------------
+def HandleProxy(request):
+    url = request.GET.get("url", None)
+    if (not url):
+        url = request.POST.get("url", None)
+
+    response = proxy_view(request, url)
+    return response
+
+
 def Common(request):
     path = request.path[:-1] if request.path.endswith("/") else request.path
     if ( path.endswith("favicon.ico")):
@@ -193,13 +202,8 @@ def Common(request):
     # Check if it is a proxy request and we have proxy registered
 
     if rpaths[0] == "proxy":
-        url = request.GET.get("url",None)
-        if not url:
-            url = request.POST.get("url", None)
-        if (url):
-            response = proxy_view(request, url)
-            return response
-    
+        return HandleProxy(request)
+
     # Check for Templates
     template = f"{rpaths[0]}/templates/{'/'.join(rpaths[1:])}";
     rpath    = "/".join(rpaths[1:]);
@@ -267,7 +271,9 @@ def main():
             CSRF_COOKIE_HTTPONLY  = False,
             CSRF_COOKIE_SECURE    = False,
             AUTHORIZE             = "", #Can be a Function, method,
-            MIDDLEWARE            = ['corsheaders.middleware.CorsMiddleware'],
+            MIDDLEWARE            = ['corsheaders.middleware.CorsMiddleware', 
+                                     #"django.middleware.csrf.CsrfViewMiddleware"
+                                    ],
             MIDDLEWARE_CLASSES=(
                 'django.middleware.common.CommonMiddleware',
             ),
