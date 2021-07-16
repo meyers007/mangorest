@@ -64,21 +64,21 @@ class myEncoder(DjangoJSONEncoder):
             return int(obj)
         else:
             return super(DjangoJSONEncoder, self).default(obj)
-#--------------------------------------------------------------------------------
+
+
+# --------------------------------------------------------------------------------
 def CallMethod(method, request, args=None):
+    par = {}
+    for c in request.GET.keys():
+        par[c] = request.GET.get(c)
+    for c in request.POST.keys():
+        par[c] = request.POST.get(c)
+
     if(args is None):
         args = inspect.getfullargspec(method)
-    
     if (args.varkw == None ):
         return method(request)
-    
-    par = dict(request.GET)
-    par.update(request.POST)
-    
-    for k in par.keys():
-        if len(par[k]) <= 1:
-            par[k] = par[k][-1]  
-    
+
     par["request"] = request
 
     ret = method(**par)
@@ -173,9 +173,15 @@ def HandleProxy(request):
     if (not url):
         url = request.POST.get("url", None)
 
-    response = proxy_view(request, url)
-    return response
+    logp(f'*Proxy request: [{url}]')
+    if (not url):
+        return HttpResponse("NO URL Given")
 
+    try:
+        response = proxy_view(request, url)
+    except Exception as e:
+        response = f"ERROR: {url} {e}"
+    return HttpResponse(response)
 
 def Common(request):
     '''    if ( 'session' in request ):
@@ -209,7 +215,6 @@ def Common(request):
         return index(request)
 
     # Check if it is a proxy request and we have proxy registered
-
     if rpaths[0] == "proxy":
         return HandleProxy(request)
 
