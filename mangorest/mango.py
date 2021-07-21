@@ -65,15 +65,18 @@ class myEncoder(DjangoJSONEncoder):
         else:
             return super(DjangoJSONEncoder, self).default(obj)
 
-
 # --------------------------------------------------------------------------------
-def CallMethod(method, request, args=None):
+def getparms(request):
     par = {}
     for c in request.GET.keys():
         par[c] = request.GET.get(c)
     for c in request.POST.keys():
         par[c] = request.POST.get(c)
 
+    return par;
+# --------------------------------------------------------------------------------
+def CallMethod(method, request, args=None):
+    par = getparms(request)
     if(args is None):
         args = inspect.getfullargspec(method)
     if (args.varkw == None ):
@@ -81,7 +84,12 @@ def CallMethod(method, request, args=None):
 
     par["request"] = request
 
-    ret = method(**par)
+    try:
+        ret = method(**par)
+    except Exception as e:
+        print(f"Error: {e}")
+        return HttpResponse(f"Error: {e}")
+
     if ('content_type' in par and par['content_type'] == 'json'):
         if (type(ret) == str):
             ret = json.loads(ret)
