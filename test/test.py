@@ -17,7 +17,7 @@ def test2(request, h="test2", **kwargs):
     return ret
 
 mangorest.mango.__VERSION__ = "1.1"
-mangorest.mango.PORT        = 9001
+mangorest.mango.PORT        = 9050
 if __name__ == '__main__' and not mangorest.mango.inJupyter():
     print(f'** NOTICE *** registered URLS: {mangorest.mango._WEBAPI_ROUTES.keys()}')
     mangorest.mango.main()
