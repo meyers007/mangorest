@@ -14,10 +14,10 @@ It is about very minimal and quick way to deploy web services super fast; yet ag
 
 See Examples in test directory here: https://github.com/meyers007/mangorest/blob/master/test/oth.py
 
-STEP 1.
 
+STEP 1.
 ```
-pip install django, serializers, mangorest
+pip install django serializers mangorest
 ```
 
 STEP 2: decorate your functions with @webapi - see example below
@@ -42,7 +42,7 @@ import mangorest.mango
 import myfile
     
 mangorest.mango.__VERSION__ = "1.1"
-mangorest.mango.PORT        = 9000
+mangorest.mango.PORT        = 8050
 if __name__ == '__main__' and not mangorest.mango.inJupyter():
     print(f'** NOTICE *** registered URLS: {mangorest.mango._WEBAPI_ROUTES.keys()}')
     mangorest.mango.main()
@@ -52,12 +52,30 @@ if __name__ == '__main__' and not mangorest.mango.inJupyter():
 STEP 4: run 
 
 ```
-python simple.py
+python simple.py runserver 0:8050
 ```
 
-STEP 5: finally visit http://localhost:9000 OR http://localhost:9000/ws2?h=tan OR http://localhost:9000/ws2 
+STEP 5: finally visit http://localhost:8050 OR http://localhost:8050/ws2?h=tan OR http://localhost:8050/ws2 
 
 **THAT IS ALL**
+
+#### OPTIONAL STEP 0:
+I assum you have two python environments 
+(1) /usr/bin/python3 ==> 3.8.9 version
+(2) /usr/local/bin/python3 ==> 3.8.3 version
+
+```
+mkdir ~/venvs
+cd ~/venvs
+EXPORT PYENV=/usr/local/bin/python
+EXPORT PYENV=/usr/bin/python3
+
+virtualenv -p $PYENV  p3.8.9
+
+source p3.8.9/bin/activate
+
+
+```
 
 ## Why?
 
