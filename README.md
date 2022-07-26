@@ -60,7 +60,7 @@ STEP 5: finally visit http://localhost:8050 OR http://localhost:8050/ws2?h=tan O
 **THAT IS ALL**
 
 #### OPTIONAL STEP 0:
-I assum you have two python environments 
+I assume that you have two python environments and be sure create an environment right for your purpose.
 (1) /usr/bin/python3 ==> 3.8.9 version
 (2) /usr/local/bin/python3 ==> 3.8.3 version
 
