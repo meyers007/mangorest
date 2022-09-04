@@ -9,10 +9,8 @@ from django.urls import path
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
 from django.core.serializers.json import DjangoJSONEncoder
 from django.conf import settings
-from django.core.wsgi import get_wsgi_application
 from django.core.management import execute_from_command_line
 import numpy as np
 from proxy.views import proxy_view
@@ -100,7 +98,7 @@ def CallMethod(method, request, args=None):
     if (isinstance(ret, django.http.response.HttpResponseBase) ):
         return ret;
     
-    if (type(ret) != str):
+    if (type(ret) != str and type(ret) != bytes ):
         ret = json.dumps(ret, cls=myEncoder)
         
     return HttpResponse(ret) #, content_type="text/plain")
@@ -145,7 +143,18 @@ def AuthorizeAPIKEY(request):
 def AuthorizeNone(request):
         return ""
     
-AUTH_METHOD = AuthorizeNone
+AUTH_METHOD =   AuthorizeNone;  
+#--------------------------------------------------------------------------------
+EXP_SETTINGS = {}
+
+@login_required(login_url='/accounts/login/')
+def CommonSecured(request, apage):
+    #authError = Authorize(request)
+    #if (  authError ):
+    #    return HttpResponse(f"{path} -- {authError}!!");
+    
+    return render(request, apage, EXP_SETTINGS )
+
 #--------------------------------------------------------------------------------
 def showroutes(request):
     ret = f'''
