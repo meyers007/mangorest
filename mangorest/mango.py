@@ -15,6 +15,13 @@ from django.core.management import execute_from_command_line
 import numpy as np
 from proxy.views import proxy_view
 
+import logging
+logging.basicConfig( level=logging.INFO,
+        format='%(asctime)s %(name)s %(levelname)s: %(message)s',
+        handlers=[ logging.FileHandler("/tmp/geoapp.log"), logging.StreamHandler()],
+        #handlers=[ logging.StreamHandler()],
+)
+logger = logging.getLogger( "geoapp")
 
 '''
 References: 
@@ -34,11 +41,15 @@ def logp(*args, **kwargs):
     if not DEBUG:
         return;
     
+    logger.info(f'==> MANGO: {args} {kwargs}')
+
+    '''
     for c in kwargs:
         print(kwargs[c], end=" ")
     for c in args:
         print(c, end=" ")
     print()
+    '''
 #--------------------------------------------------------------------------------
 def Debug(request, APPNAME=''):
     rpath = request.path.split('/')[-2] #en(APPNAME)+2:-1]
@@ -190,6 +201,7 @@ def HandleProxy(request):
     
     return response
 #--------------------------------------------------------------------------------
+LOG_NUM=1;
 def Common(request):
     path = request.path[:-1] if request.path.endswith("/") else request.path
     if ( path.endswith("favicon.ico")):
@@ -205,7 +217,10 @@ def Common(request):
         return HttpResponse(f"{path} -- {authError}!!");
 
     # Next STEP 1: check with registered URLS
-    logp(f'*Check: {path} registered URLS: {_WEBAPI_ROUTES.keys()}')
+    global LOG_NUM
+    if ( LOG_NUM > 0 ):
+        logp(f'*Check: {path} registered URLS: {_WEBAPI_ROUTES.keys()}')
+        LOG_NUM -= 1
     
     if (path == "/SHOW_ROUTES" ):
         return showroutes(request)
