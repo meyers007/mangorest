@@ -98,12 +98,12 @@ def CallMethod(method, request, args=None):
         return method(request)
     
     par = getparms(request)
-    
+
     for k in ["csrfmiddlewaretoken", "auth"]:
         if k in par:
             del par[k]
     try:
-        logger.info(f"Calling {method}")
+        logger.info(f"Calling {method.name}")
         ret = method(**par)
     except Exception as e:
         logger.error(e)
@@ -253,15 +253,16 @@ def Common(request):
     template = f"{rpaths[0]}/templates/{'/'.join(rpaths[1:])}";
     rpath    = "/".join(rpaths[1:]);
     
-    logp(rpaths, f'=*=>{path} {template}; {rpaths} ++ {rpath}');
+    logger.debug(rpaths)
+    logger.debug(f'=*=>{path} {template}; {rpaths} ++ {rpath}');
     
     if ( os.path.exists(template) and request.path.find("/secured/") > 0) : 
-        logp("Secured ==> " , rpaths, "==>", template);
+        logger.debug("Secured ==> " , rpaths, "==>", template);
         return CommonSecured(request, rpath)
     elif ( os.path.exists(template) ):
         return render(request, rpath)
     elif rpaths[-1].find("modules.") >= 0: #Must be a python module call
-        logp("**** Getting python Module")
+        logger.debug("**** Getting python Module")
         return TryRunPyMethod(request)
     
     return HttpResponse(f"{path} not understood");
