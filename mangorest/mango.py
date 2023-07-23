@@ -21,7 +21,7 @@ logging.basicConfig( level=logging.INFO,
         handlers=[ logging.FileHandler("/tmp/geoapp.log"), logging.StreamHandler()],
         #handlers=[ logging.StreamHandler()],
 )
-logger = logging.getLogger( "geoapp")
+logger = logging.getLogger( "app.mangorest")
 
 '''
 References: 
@@ -98,12 +98,15 @@ def CallMethod(method, request, args=None):
         return method(request)
     
     par = getparms(request)
-
+    
+    for k in ["csrfmiddlewaretoken", "auth"]:
+        if k in par:
+            del par[k]
     try:
         logger.info(f"Calling {method}")
         ret = method(**par)
     except Exception as e:
-        logger.error(f"==>MANGOREST {e}")
+        logger.error(e)
         logger.exception(e)
         raise e
         
