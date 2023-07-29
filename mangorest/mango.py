@@ -103,7 +103,7 @@ def CallMethod(method, request, args=None):
         if k in par:
             del par[k]
     try:
-        logger.info(f"Calling {method.name}")
+        logger.info(f"{method.__module__}.{method.__name__}")
         ret = method(**par)
     except Exception as e:
         logger.error(e)
