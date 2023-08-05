@@ -84,7 +84,14 @@ def getparms(request):
     for k in par.keys():
         if len(par[k]) <= 1:
             par[k] = par[k][-1]  
-    
+            if (par[k].isnumeric()):
+                par[k] = int(par[k])
+            else:
+                try:
+                    par[k] = float(par[k])
+                except:
+                    pass;
+
     par["request"] = request
     
     return par;
