@@ -14,6 +14,8 @@ from django.conf import settings
 from django.core.management import execute_from_command_line
 import numpy as np
 from proxy.views import proxy_view
+import pandas as pd
+
 
 import logging
 logging.basicConfig( level=logging.INFO,
@@ -29,7 +31,7 @@ https://blog.miguelgrinberg.com/post/the-ultimate-guide-to-python-decorators-par
 https://simpleisbetterthancomplex.com/article/2017/08/07/a-minimal-django-application.html
 
 '''
-__VERSION__ = "1.14"
+__VERSION__ = "1.15"
 __NAME__    = ""
 PORT        = 8050
 #--------------------------------------------------------------------------------
@@ -40,16 +42,8 @@ DEBUG=0
 def logp(*args, **kwargs):
     if not DEBUG:
         return;
-    
     logger.info(f'==> MANGO: {args} {kwargs}')
 
-    '''
-    for c in kwargs:
-        print(kwargs[c], end=" ")
-    for c in args:
-        print(c, end=" ")
-    print()
-    '''
 #--------------------------------------------------------------------------------
 def Debug(request, APPNAME=''):
     rpath = request.path.split('/')[-2] #en(APPNAME)+2:-1]
@@ -64,16 +58,12 @@ def Debug(request, APPNAME=''):
                {getlist} </pre> '''
     return HttpResponse(ret);
 #--------------------------------------------------------------------------------
-# ALL you need to do is just define a function as follows
-# def test(a=n, **kwargs):
-#    #do your stuff
-#    return 
-# This function will take care of the rest
-
 class myEncoder(DjangoJSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.int64):
             return int(obj)
+        elif isinstance(obj, pd._libs.tslibs.timestamps.Timestamp):
+            return str(obj)
         else:
             return super(DjangoJSONEncoder, self).default(obj)
 #--------------------------------------------------------------------------------
