@@ -243,20 +243,23 @@ def Common(request):
 
     # If not in the registered do templates:
     
-    rpaths = [c for c in path.split("/") if (c)];
+    rpaths = [c for c in path.split("/") if (c)]
     if (len(rpaths) < 1):
         return index(request)
-    
-    template = f"{rpaths[0]}/templates/{'/'.join(rpaths[1:])}";
-    rpath    = "/".join(rpaths[1:]);
+    elif (len(rpaths) == 1):
+        template = f"templates/{rpaths[0]}"
+        rpath    = rpaths[0]
+    else:
+        template = f"{rpaths[0]}/templates/{'/'.join(rpaths[1:])}"
+        rpath    = "/".join(rpaths[1:])
     
     logger.debug(rpaths)
-    logger.debug(f'=*=>{path} {template}; {rpaths} ++ {rpath}');
+    logger.info(f'=*=>{path} {template}; {rpaths} ++[{rpath}]');
     
     if ( os.path.exists(template) and request.path.find("/secured/") > 0) : 
         logger.debug("Secured ==> " , rpaths, "==>", template);
         return CommonSecured(request, rpath)
-    elif ( os.path.exists(template) ):
+    elif ( os.path.exists(template) and rpath.strip()):
         return render(request, rpath)
     elif rpaths[-1].find("modules.") >= 0: #Must be a python module call
         logger.debug("**** Getting python Module")
