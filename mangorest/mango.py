@@ -16,6 +16,7 @@ import pandas as pd
 
 from django.conf import settings
 from django.contrib.staticfiles import finders
+from django.contrib.staticfiles import views
 from django.http import Http404
 from django.views import static
 
@@ -61,7 +62,7 @@ def Debug(request, APPNAME=''):
     ret = f''' <pre>\n Response Object: \n{os.getcwd()} path_info:{request.path_info}: final:{rpath}
                Page exists:  {template} : {os.path.exists(template)}
                Page exists:  {pyModule} : {os.path.exists(pyModule)}
-               {getlist} </pre> '''
+           L    {getlist} </pre> '''
     return HttpResponse(ret);
 #--------------------------------------------------------------------------------
 class myEncoder(DjangoJSONEncoder):
@@ -132,13 +133,13 @@ def TryRunPyMethod(request):
     pyMethod = rpaths[-1];
  
     if ( pyMethod.find("modules.") < 0 ):
-        return HttpResponse(f"{pyMethod} not understood 0")
+        return HttpResponse(f"error: {pyMethod} not understood 0")
         
     spl = pyMethod.split('.');
  
     if ( len(spl) < 2):
         logp("Hmmm ... May be not what is intended!! module name")
-        return HttpResponse(f"{pyMethod} not understood 2");
+        return HttpResponse(f"error: {pyMethod} not understood 2");
     
     modName = ".".join(spl[:-1])
     __import__(modName, fromlist="dummy")
@@ -150,7 +151,7 @@ def TryRunPyMethod(request):
             logp("==>", v, type(v), funName, method, type(method), callable(method))
             return CallMethod(method, request)
         
-    return HttpResponse(f"{pyMethod} not understood3 ");
+    return HttpResponse(f"error: {pyMethod} not understood3 ");
     
 #--------------------------------------------------------------------------------
 '''
@@ -258,6 +259,7 @@ def serveStatic_local(request, path, **kwargs):
 
 
 def serveStatic(request, path, **kwargs):
+    #return views.serve(request, path, insecure=True, **kwargs)
     file=path[8:]
     #LOG = 0
     #if str(path).find("bootstrap.min.js.map") > 1:
@@ -346,7 +348,7 @@ def Common(request):
         logger.debug("**** Getting python Module")
         return TryRunPyMethod(request)
     
-    return HttpResponse(f"{path} not understood");
+    return HttpResponse(f"error: {path} not understood");
     
 #--------------------------------------------------------------------------------
 _WEBAPI_ROUTES={}
