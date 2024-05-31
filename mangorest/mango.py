@@ -69,7 +69,8 @@ class myEncoder(DjangoJSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.int64):
             return int(obj)
-        elif isinstance(obj, pd._libs.tslibs.timestamps.Timestamp):
+        elif isinstance(obj, pd._libs.tslibs.timestamps.Timestamp) or \
+                isinstance(obj, datetime.datetime):
             return str(obj)
         else:
             return super(DjangoJSONEncoder, self).default(obj)
