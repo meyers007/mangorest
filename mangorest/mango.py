@@ -35,13 +35,11 @@ https://blog.miguelgrinberg.com/post/the-ultimate-guide-to-python-decorators-par
 https://simpleisbetterthancomplex.com/article/2017/08/07/a-minimal-django-application.html
 
 '''
-__VERSION__ = "2.0"
+__VERSION__ = "2.1"
 __NAME__    = ""
 PORT        = 8050
 
-logger.info(f'''
-************************ MANGO REST API {__VERSION__}*************************
-''')
+logger.info(f'''************* MANGO REST API {__VERSION__}****************''')
 #--------------------------------------------------------------------------------
 def index(request):
     return showroutes(request)    
@@ -237,7 +235,7 @@ def mimetype(file):
 
     return mtype
 
-def serveStatic_local(request, path, **kwargs):
+'''def serveStatic_local(request, path, **kwargs):
     file=path[1:]
 
     mtype = mimetype(file)
@@ -257,7 +255,7 @@ def serveStatic_local(request, path, **kwargs):
             break;
     
     return HttpResponse(ret, content_type=mtype) #request.content_type)    
-
+'''
 
 def serveStatic(request, path, **kwargs):
     #return views.serve(request, path, insecure=True, **kwargs)
@@ -277,7 +275,8 @@ def serveStatic(request, path, **kwargs):
     document_root, path = os.path.split(absolute_path)
 
     #if LOG: print(f"\n>>>>>>>>>>>>>> {document_root} ==> {path} +++++++++++++++++++\n\n")
-
+    if (not path.endswith("/")):
+        path += "/"
     return static.serve(request, path, document_root=document_root, **kwargs)
 
 '''
