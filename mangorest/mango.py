@@ -214,6 +214,36 @@ def HandleProxy(request):
     
     return response
 #--------------------------------------------------------------------------------
+# This method expects proxies be set in settings
+import random;
+def CallProxy(request):
+    if ( not settings.PROXIES or not len(settings.PROXIES)):
+        return None
+    
+    rand = random.randint(0, len(settings.PROXIES)-1)
+    proxy_url = settings.PROXIES[rand]
+    if ( proxy_url.endswith("/")):
+        proxy_url = proxy_url[:-1]
+    
+    full_path = request.get_full_path()
+    
+    baseu= request.build_absolute_uri()[:-len(full_path)]
+    if baseu.startswith(proxy_url):
+        # To dod check for IP so we dont go into loop
+        #print(f'''Seems like same host seu} === {proxy_url}''')
+        return
+    
+    new_url = proxy_url + request.build_absolute_uri()[-len(full_path):]
+    #Path:{request.path};  Full Path: {full_path}; {request.build_absolute_uri()}
+    #{settings.PROXIES}
+    #print(f'PROXY_HANDLING:  New URL {new_url}');
+    try:
+        response = proxy_view(request, new_url)
+    except Exception as e:
+        return HttpResponse(f"ERROR: while getting '{url}' {e}")
+    
+    return response
+#--------------------------------------------------------------------------------
 import mimetypes
 
 mimetypes.add_type("text/css", ".css", True) 
@@ -299,6 +329,7 @@ def Common(request):
     if len(rpaths) and rpaths[0] == "proxy":
         return HandleProxy(request)
     
+
     # Check for authorizaton and version request
     authError = AUTH_METHOD(request)
     if ( authError ):
@@ -319,6 +350,14 @@ def Common(request):
             ret = auth(request)
             if ( ret ):
                 return HttpResponse(f"{path} -- {authError}!!"); 
+            
+        
+        # **** HERE HANDLE PROXIE SETTINGS
+        if (settings.PROXIES):
+            ret =  CallProxy(request)
+            if ( ret ):
+                return ret
+                
         return CallMethod(f,request, args)
 
 
