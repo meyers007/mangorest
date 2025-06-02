@@ -128,10 +128,10 @@ def CallMethod(method, request, args=None):
     response = HttpResponse(ret)        
     response.headers["Access-Control-Allow-Origin"] = "*"
             
-    print(f"""
-          ****** Retruning *****
-          {response.headers["Access-Control-Allow-Origin"] }
-          """)
+    #print(f"""
+    #      ****** Retruning *****
+    #      {response.headers["Access-Control-Allow-Origin"] }
+    #      """)
     return response #, content_type="text/plain")
 #--------------------------------------------------------------------------------
 def TryRunPyMethod(request):
