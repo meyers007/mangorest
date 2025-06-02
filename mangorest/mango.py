@@ -124,8 +124,11 @@ def CallMethod(method, request, args=None):
     
     if (type(ret) != str and type(ret) != bytes ):
         ret = json.dumps(ret, cls=myEncoder)
-        
-    return HttpResponse(ret) #, content_type="text/plain")
+    
+    response = HttpResponse(ret)        
+    response.headers["Access-Control-Allow-Origin"] = "*"
+            
+    return response #, content_type="text/plain")
 #--------------------------------------------------------------------------------
 def TryRunPyMethod(request):
     rpaths = [c for c in request.path.split("/") if (c) ];
