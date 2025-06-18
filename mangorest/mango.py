@@ -128,10 +128,6 @@ def CallMethod(method, request, args=None):
     response = HttpResponse(ret)        
     response.headers["Access-Control-Allow-Origin"] = "*"
             
-    #print(f"""
-    #      ****** Retruning *****
-    #      {response.headers["Access-Control-Allow-Origin"] }
-    #      """)
     return response #, content_type="text/plain")
 #--------------------------------------------------------------------------------
 def TryRunPyMethod(request):
@@ -226,7 +222,7 @@ def HandleProxy(request):
 # This method expects proxies be set in settings
 import random;
 def CallProxy(request):
-    if ( not settings.PROXIES or not len(settings.PROXIES)):
+    if ( PROXIES not in settings or not settings.PROXIES or not len(settings.PROXIES)):
         return None
     
     rand = random.randint(0, len(settings.PROXIES)-1)
@@ -362,7 +358,7 @@ def Common(request):
             
         
         # **** HERE HANDLE PROXIE SETTINGS
-        if (settings.PROXIES):
+        if (PROXIES in settings and settings.PROXIES):
             ret =  CallProxy(request)
             if ( ret ):
                 return ret
