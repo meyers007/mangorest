@@ -22,11 +22,15 @@ from django.views import static
 
 
 import logging
-logging.basicConfig( level=logging.INFO,
-        format='%(asctime)s %(name)s %(levelname)s: %(message)s',
-        handlers=[ logging.FileHandler("/tmp/geoapp.log"), logging.StreamHandler()],
-        #handlers=[ logging.StreamHandler()],
-)
+LOGFILE=os.environ.get("LOGFILE", "/tmp/geoapp.log")
+try:
+    logging.basicConfig( level=logging.INFO,
+            format='%(asctime)s %(name)s %(levelname)s: %(message)s',
+            handlers=[ logging.FileHandler("/tmp/geoapp.log"), logging.StreamHandler()],
+            #handlers=[ logging.StreamHandler()],
+    )
+except:
+    print("Could not create log file, set LOGFILE environment variable")
 logger = logging.getLogger( "app.mangorest")
 
 '''
@@ -128,6 +132,10 @@ def CallMethod(method, request, args=None):
     response = HttpResponse(ret)        
     response.headers["Access-Control-Allow-Origin"] = "*"
             
+    #print(f"""
+    #      ****** Retruning *****
+    #      {response.headers["Access-Control-Allow-Origin"] }
+    #      """)
     return response #, content_type="text/plain")
 #--------------------------------------------------------------------------------
 def TryRunPyMethod(request):
@@ -222,7 +230,7 @@ def HandleProxy(request):
 # This method expects proxies be set in settings
 import random;
 def CallProxy(request):
-    if ( PROXIES not in settings or not settings.PROXIES or not len(settings.PROXIES)):
+    if ( "PROXIES" not in vars(settings) or not settings.PROXIES or not len(settings.PROXIES)):
         return None
     
     rand = random.randint(0, len(settings.PROXIES)-1)
@@ -358,7 +366,7 @@ def Common(request):
             
         
         # **** HERE HANDLE PROXIE SETTINGS
-        if (PROXIES in settings and settings.PROXIES):
+        if ("PROXIES" in vars(settings) and settings.PROXIES):
             ret =  CallProxy(request)
             if ( ret ):
                 return ret
