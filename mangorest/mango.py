@@ -22,15 +22,15 @@ from django.views import static
 
 
 import logging
-LOGFILE=os.environ.get("LOGFILE", "/tmp/geoapp.log")
+LOGFILE=os.environ.get("LOGFILE", "geoapp.log")
 try:
     logging.basicConfig( level=logging.INFO,
             format='%(asctime)s %(name)s %(levelname)s: %(message)s',
-            handlers=[ logging.FileHandler("/tmp/geoapp.log"), logging.StreamHandler()],
+            handlers=[ logging.FileHandler(LOGFILE), logging.StreamHandler()],
             #handlers=[ logging.StreamHandler()],
     )
 except:
-    print("Could not create log file, set LOGFILE environment variable")
+    print(f"Log file '{LOGFILE}' may be used by another process or users - set LOGFILE environment")
 logger = logging.getLogger( "app.mangorest")
 
 '''

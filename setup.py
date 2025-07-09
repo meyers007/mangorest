@@ -1,6 +1,6 @@
 from setuptools import setup
 
-version=0.14200000000000004
+version=0.14300000000000004
 
 setup(name='mangorest', 
       version=str(version), 
