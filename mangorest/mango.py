@@ -23,6 +23,7 @@ from django.views import static
 
 import logging
 LOGFILE=os.environ.get("LOGFILE", "geoapp.log")
+'''
 try:
     logging.basicConfig( level=logging.INFO,
             format='%(asctime)s %(name)s %(levelname)s: %(message)s',
@@ -31,19 +32,19 @@ try:
     )
 except:
     print(f"Log file '{LOGFILE}' may be used by another process or users - set LOGFILE environment")
+'''
 logger = logging.getLogger( "app.mangorest")
-
 '''
 References: 
 https://blog.miguelgrinberg.com/post/the-ultimate-guide-to-python-decorators-part-iii-decorators-with-arguments
 https://simpleisbetterthancomplex.com/article/2017/08/07/a-minimal-django-application.html
 
 '''
-__VERSION__ = "2.1"
+__VERSION__ = "12.3.89"
 __NAME__    = ""
 PORT        = 8050
 
-logger.info(f'''************* MANGO REST API {__VERSION__}****************''')
+#logger.info(f'''************* MANGO REST API {__VERSION__}****************''')
 #--------------------------------------------------------------------------------
 def index(request):
     return showroutes(request)    
