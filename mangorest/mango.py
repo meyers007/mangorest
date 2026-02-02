@@ -400,6 +400,8 @@ def Common(request):
     elif rpaths[-1].find("modules.") >= 0: #Must be a python module call
         logger.debug("**** Getting python Module")
         return TryRunPyMethod(request)
+    else:
+        return render(request, rpath)
     
     return HttpResponse(f"error: {path} not understood");
     
