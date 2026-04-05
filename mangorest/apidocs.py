@@ -206,17 +206,40 @@ def generate_docs(routes, app_name="", version=""):
     .info-bar .stats {{ margin-top: 10px; display: flex; gap: 20px; }}
     .info-bar .stat {{ background: #f0f0f0; padding: 6px 14px; border-radius: 6px; font-size: 13px; }}
     .container {{ max-width: 1200px; margin: 20px auto; padding: 0 24px; }}
-    .global-auth {{ background: transparent; border: 0px solid #e0e0e0; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }}
-    .global-auth label {{ font-weight: 600; white-space: nowrap; }}
-    .global-auth input, .global-auth select {{ padding: 8px 12px; border: 1px solid #d0d0d0; border-radius: 4px; font-size: 14px; }}
-    .global-auth .btn-auth {{ background: #49cc90; color: #fff; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; }}
-    .global-auth .btn-auth:hover {{ background: #3bb578; }}
-    .auth-row {{ display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }}
-    .auth-row:last-child {{ margin-bottom: 0; }}
-    .auth-header {{ display: flex; align-items: center; justify-content: flex-end; }}
-    .btn-authorize {{ background: #49cc90; color: #fff; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 14px; }}
-    .btn-authorize:hover {{ background: #3bb578; }}
-    .auth-body {{ display: none; padding-top: 12px; border-top: 1px solid #e0e0e0; margin-top: 12px; }}
+    .auth-header {{ display: flex; align-items: center; justify-content: flex-end; margin-bottom: 12px; }}
+    .btn-authorize {{ background: #fff; color: #49cc90; border: 2px solid #49cc90; padding: 8px 24px; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 14px; }}
+    .btn-authorize:hover {{ background: #f0fdf4; }}
+    .btn-authorize.authed {{ background: #49cc90; color: #fff; }}
+    /* Modal overlay */
+    .auth-modal-overlay {{ display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: flex-start; padding-top: 80px; }}
+    .auth-modal-overlay.open {{ display: flex; }}
+    .auth-modal {{ background: #fff; border-radius: 8px; width: 520px; max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }}
+    .auth-modal-header {{ display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid #e0e0e0; }}
+    .auth-modal-header h2 {{ font-size: 18px; color: #3b4151; }}
+    .auth-modal-close {{ background: none; border: none; font-size: 22px; cursor: pointer; color: #888; padding: 4px 8px; }}
+    .auth-modal-close:hover {{ color: #333; }}
+    .auth-modal-body {{ padding: 24px; }}
+    .auth-section {{ border-bottom: 1px solid #e8e8e8; padding-bottom: 20px; margin-bottom: 20px; }}
+    .auth-section:last-child {{ border-bottom: none; margin-bottom: 0; padding-bottom: 0; }}
+    .auth-section h3 {{ font-family: monospace; font-size: 16px; color: #3b4151; margin-bottom: 4px; }}
+    .auth-section .auth-type {{ color: #6b7280; font-size: 13px; margin-bottom: 12px; }}
+    .auth-section .auth-detail {{ color: #6b7280; font-size: 13px; margin-bottom: 2px; }}
+    .auth-field {{ margin-bottom: 12px; }}
+    .auth-field label {{ display: block; font-weight: 700; font-size: 13px; color: #3b4151; margin-bottom: 4px; }}
+    .auth-field-wrap {{ display: flex; align-items: center; max-width: 380px; position: relative; }}
+    .auth-field-wrap input {{ width: 100%; padding: 10px 40px 10px 12px; border: 2px solid #49cc90; border-radius: 4px; font-size: 14px; outline: none; }}
+    .auth-field-wrap input:focus {{ border-color: #3bb578; box-shadow: 0 0 0 3px rgba(73,204,144,0.15); }}
+    .eye-toggle {{ position: absolute; right: 8px; background: none; border: none; cursor: pointer; font-size: 18px; color: #888; padding: 2px 4px; }}
+    .eye-toggle:hover {{ color: #3b4151; }}
+    .auth-buttons {{ display: flex; gap: 10px; margin-top: 16px; }}
+    .auth-btn-green {{ background: #fff; color: #49cc90; border: 2px solid #49cc90; padding: 8px 24px; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 14px; }}
+    .auth-btn-green:hover {{ background: #f0fdf4; }}
+    .auth-btn-gray {{ background: #fff; color: #666; border: 1px solid #ccc; padding: 8px 24px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 14px; }}
+    .auth-btn-gray:hover {{ background: #f5f5f5; }}
+    .auth-btn-red {{ background: #fff; color: #f93e3e; border: 2px solid #f93e3e; padding: 8px 24px; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 14px; }}
+    .auth-btn-red:hover {{ background: #fef2f2; }}
+    .auth-save-row {{ display: flex; align-items: center; gap: 8px; margin-top: 10px; }}
+    .auth-save-row label {{ font-size: 13px; color: #555; font-weight: 400; cursor: pointer; }}
     .endpoint {{ background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 8px; overflow: hidden; }}
     .endpoint-header {{ display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; user-select: none; }}
     .endpoint-header:hover {{ background: #f8f8f8; }}
@@ -277,45 +300,165 @@ def generate_docs(routes, app_name="", version=""):
     </div>
 </div>
 <div class="container">
-    <div class="auth-header"><button class="btn-authorize" onclick="toggleAuth(this)">Authorize</button></div>
-    <div class="global-auth">
-        <div class="auth-body">
-            <div class="auth-row">
-                <label>🔑 Auth Key:</label>
-                <input type="text" id="globalAuthKey" placeholder="Cookie, Token, or APK key" style="flex:1;" />
+    <div class="auth-header"><button class="btn-authorize" id="authOpenBtn" onclick="openAuthModal()">Authorize</button></div>
+
+    <!-- Auth Modal -->
+    <div class="auth-modal-overlay" id="authModal">
+        <div class="auth-modal">
+            <div class="auth-modal-header">
+                <h2>Available authorizations</h2>
+                <button class="auth-modal-close" onclick="closeAuthModal()">&times;</button>
             </div>
-            <div class="auth-row">
-                <label>👤 Username:</label>
-                <input type="text" id="globalUser" placeholder="username" style="max-width:150px;" />
-                <label>🔒 Password:</label>
-                <input type="password" id="globalPass" placeholder="password" style="max-width:150px;" />
-                <button class="btn-auth" onclick="applyGlobalAuth()">Apply to All</button>
+            <div class="auth-modal-body">
+                <div class="auth-section">
+                    <h3>basicAuth <span style="font-weight:400;color:#6b7280;">(http, Basic)</span></h3>
+                    <div class="auth-field">
+                        <label>Username:</label>
+                        <div class="auth-field-wrap">
+                            <input type="text" id="globalUser" placeholder="username" />
+                        </div>
+                    </div>
+                    <div class="auth-field">
+                        <label>Password:</label>
+                        <div class="auth-field-wrap">
+                            <input type="password" id="globalPass" placeholder="password" />
+                            <button type="button" class="eye-toggle" onclick="toggleVis(this)">&#128065;</button>
+                        </div>
+                    </div>
+                    <div class="auth-buttons">
+                        <button class="auth-btn-green" onclick="authorizeBasic()">Authorize</button>
+                        <button class="auth-btn-red" onclick="logoutBasic()" style="display:none;" id="logoutBasicBtn">Logout</button>
+                    </div>
+                </div>
+                <div class="auth-section">
+                    <h3>cookieAuth <span style="font-weight:400;color:#6b7280;">(apiKey)</span></h3>
+                    <div class="auth-detail">Name: sessionid</div>
+                    <div class="auth-detail" style="margin-bottom:10px;">In: cookie</div>
+                    <div class="auth-field">
+                        <label>Value:</label>
+                        <div class="auth-field-wrap">
+                            <input type="password" id="globalAuthKey" placeholder="session cookie or API key" />
+                            <button type="button" class="eye-toggle" onclick="toggleVis(this)">&#128065;</button>
+                        </div>
+                    </div>
+                    <div class="auth-buttons">
+                        <button class="auth-btn-green" onclick="authorizeCookie()">Authorize</button>
+                        <button class="auth-btn-red" onclick="logoutCookie()" style="display:none;" id="logoutCookieBtn">Logout</button>
+                    </div>
+                </div>
+                <div class="auth-save-row">
+                    <input type="checkbox" id="authSaveLocal" />
+                    <label for="authSaveLocal">Save credentials locally (localStorage)</label>
+                </div>
+                <div class="auth-buttons" style="margin-top:16px; border-top:1px solid #e8e8e8; padding-top:16px;">
+                    <button class="auth-btn-gray" onclick="closeAuthModal()">Close</button>
+                </div>
             </div>
         </div>
     </div>
     {endpoints_html}
 </div>
 <script>
-function toggleAuth(el) {{
-    const authDiv = el.closest('.auth-header').nextElementSibling;
-    const body = authDiv.querySelector('.auth-body');
-    const visible = body.style.display === 'block';
-    body.style.display = visible ? 'none' : 'block';
+function toggleVis(btn) {{
+    const inp = btn.previousElementSibling;
+    const isPass = inp.type === 'password';
+    inp.type = isPass ? 'text' : 'password';
+    btn.innerHTML = isPass ? '&#128064;' : '&#128065;';
 }}
+
+// Auth modal
+function openAuthModal() {{
+    document.getElementById('authModal').classList.add('open');
+}}
+function closeAuthModal() {{
+    document.getElementById('authModal').classList.remove('open');
+}}
+// Close modal on overlay click
+document.getElementById('authModal').addEventListener('click', function(e) {{
+    if (e.target === this) closeAuthModal();
+}});
+
+function updateAuthBtn() {{
+    const btn = document.getElementById('authOpenBtn');
+    const g = window._globalAuth || {{}};
+    const hasAuth = g.key || (g.user && g.pass);
+    btn.classList.toggle('authed', !!hasAuth);
+    btn.textContent = hasAuth ? '🔒 Authorized' : 'Authorize';
+}}
+
+function _saveAuthCookie() {{
+    const data = JSON.stringify(window._globalAuth || {{}});
+    const d = new Date(); d.setTime(d.getTime() + 30*24*60*60*1000);
+    document.cookie = '_mangoAuth=' + encodeURIComponent(data) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+}}
+function _clearAuthCookie() {{
+    document.cookie = '_mangoAuth=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;';
+}}
+function _loadAuthCookie() {{
+    const match = document.cookie.match(/(?:^|;\s*)_mangoAuth=([^;]*)/);
+    if (!match) return null;
+    try {{ return JSON.parse(decodeURIComponent(match[1])); }} catch(e) {{ return null; }}
+}}
+
+function authorizeBasic() {{
+    const user = document.getElementById('globalUser').value;
+    const pass_ = document.getElementById('globalPass').value;
+    if (!user || !pass_) return;
+    window._globalAuth = window._globalAuth || {{}};
+    window._globalAuth.user = user;
+    window._globalAuth.pass = pass_;
+    document.getElementById('logoutBasicBtn').style.display = 'inline-block';
+    if (document.getElementById('authSaveLocal').checked) _saveAuthCookie();
+    updateAuthBtn();
+}}
+
+function logoutBasic() {{
+    document.getElementById('globalUser').value = '';
+    document.getElementById('globalPass').value = '';
+    if (window._globalAuth) {{ delete window._globalAuth.user; delete window._globalAuth.pass; }}
+    document.getElementById('logoutBasicBtn').style.display = 'none';
+    _clearAuthCookie();
+    updateAuthBtn();
+}}
+
+function authorizeCookie() {{
+    const key = document.getElementById('globalAuthKey').value;
+    if (!key) return;
+    window._globalAuth = window._globalAuth || {{}};
+    window._globalAuth.key = key;
+    document.getElementById('logoutCookieBtn').style.display = 'inline-block';
+    if (document.getElementById('authSaveLocal').checked) _saveAuthCookie();
+    updateAuthBtn();
+}}
+
+function logoutCookie() {{
+    document.getElementById('globalAuthKey').value = '';
+    if (window._globalAuth) delete window._globalAuth.key;
+    document.getElementById('logoutCookieBtn').style.display = 'none';
+    _clearAuthCookie();
+    updateAuthBtn();
+}}
+
+// Load saved auth from cookie on page load
+(function loadSavedAuth() {{
+    try {{
+        const saved = _loadAuthCookie();
+        if (saved && Object.keys(saved).length) {{
+            window._globalAuth = saved;
+            if (saved.user) {{ document.getElementById('globalUser').value = saved.user; document.getElementById('logoutBasicBtn').style.display = 'inline-block'; }}
+            if (saved.pass) document.getElementById('globalPass').value = saved.pass;
+            if (saved.key) {{ document.getElementById('globalAuthKey').value = saved.key; document.getElementById('logoutCookieBtn').style.display = 'inline-block'; }}
+            document.getElementById('authSaveLocal').checked = true;
+            updateAuthBtn();
+        }}
+    }} catch(e) {{}}
+}})();
 
 function toggleEndpoint(id) {{
     const el = document.getElementById(id);
     const body = el.querySelector('.endpoint-body');
     el.classList.toggle('open');
     body.style.display = body.style.display === 'none' ? 'block' : 'none';
-}}
-
-function applyGlobalAuth() {{
-    const key = document.getElementById('globalAuthKey').value;
-    const user = document.getElementById('globalUser').value;
-    const pass_ = document.getElementById('globalPass').value;
-    // Store globally for tryEndpoint to pick up
-    window._globalAuth = {{ key: key, user: user, pass: pass_ }};
 }}
 
 function tryEndpoint(path, epId) {{
