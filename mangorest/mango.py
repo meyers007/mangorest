@@ -13,6 +13,7 @@ from django.core.management import execute_from_command_line
 import numpy as np
 from proxy.views import proxy_view
 import pandas as pd
+from mangorest.apidocs import generate_docs
 
 from django.conf import settings
 from django.contrib.staticfiles import finders
@@ -195,24 +196,8 @@ def CommonSecured(request, apage):
 
 #--------------------------------------------------------------------------------
 def showroutes(request):
-    ret = f'''
-    <h1>{__NAME__} - Version {__VERSION__} </h1>
-    
-    <h3> Showing ALL ROUTES # of Routes: {len(_WEBAPI_ROUTES.keys())} </h3><br/>
-    <table width=% border=1>
-    <tr><th>Path</th><th>Function Entry Point</th><th>Args</th><th>Auth Key</th><th>Misc</th></tr>
-
-    These are the REST end points you may use - please note the APKKEY requirements
-    <br/>
-    '''
-    for k,v in _WEBAPI_ROUTES.items():
-        f = v[0]
-        fname = f'{f.__module__}.{f.__name__}'
-
-        ret += f'<tr><td>{k}</td><td>{fname}</td><td>{v[1].args}</td><td>{v[2]}</td><td>{v[-1]}</td></tr>\n'
-
-    ret += "</table>"
-    return HttpResponse(ret)
+    html = generate_docs(_WEBAPI_ROUTES, app_name=__NAME__, version=__VERSION__)
+    return HttpResponse(html)
 #--------------------------------------------------------------------------------
 def HandleProxy(request):
     url = request.GET.get("url", None)
@@ -355,7 +340,7 @@ def Common(request):
         logp(f'*Check: {path} registered URLS: {_WEBAPI_ROUTES.keys()}')
         LOG_NUM -= 1
     
-    if (path == "/SHOW_ROUTES" ):
+    if path in ("/apis/doc", "/SHOW_ROUTES"):
         return showroutes(request)
     
     if (path in _WEBAPI_ROUTES.keys() ):
