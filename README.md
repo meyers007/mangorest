@@ -70,9 +70,9 @@ cd ~/venvs
 EXPORT PYENV=/usr/local/bin/python
 EXPORT PYENV=/usr/bin/python3
 
-virtualenv -p $PYENV  p3.8.9
+python3.13 -m venv .venv
 
-source p3.8.9/bin/activate
+source .venv/bin/activate
 
 
 ```
