@@ -76,6 +76,7 @@ def _build_endpoint_html(path, route_info):
     summary = opts.get("doc", "") or docstring.split("\n")[0] if docstring else ""
     requires_auth = "Yes" if auth else "No"
     ep_version = opts.get("version", "")
+    accepts_files = opts.get("files", False)
     safe_id = path.replace("/", "_").replace(".", "_")
 
     # Build extra attributes from webapi kwargs
@@ -120,6 +121,14 @@ def _build_endpoint_html(path, route_info):
                 {kwargs_input}
             </table>"""
 
+    file_upload = ""
+    if accepts_files:
+        file_upload = """
+                <div class="file-upload-section" style="margin-top:10px;">
+                    <label style="font-weight:600;font-size:13px;">📁 Upload Files:</label>
+                    <input type="file" class="file-input" multiple style="margin-left:8px;font-size:13px;" />
+                </div>"""
+
     return f"""
     <div class="endpoint" id="ep{safe_id}">
         <div class="endpoint-header" onclick="toggleEndpoint('ep{safe_id}')">
@@ -140,7 +149,9 @@ def _build_endpoint_html(path, route_info):
             </div>
             <div class="tryout-section">
                 <h4>Try It Out</h4>
-                <div class="tryout-controls" style="margin-bottom:10px;">
+                {params_table}
+                {file_upload}
+                <div class="tryout-controls" style="margin-top:10px;">
                     <label>Method:
                         <select class="method-select">
                             <option value="GET">GET</option>
@@ -149,7 +160,6 @@ def _build_endpoint_html(path, route_info):
                     </label>
                     <button class="btn-try" onclick="tryEndpoint('{path}', 'ep{safe_id}')">Execute</button>
                 </div>
-                {params_table}
                 <div class="response-section" style="display:none;">
                     <h4>Response</h4>
                     <div class="response-status"></div>
@@ -172,7 +182,7 @@ def generate_docs(routes, app_name="", version=""):
     desc = cfg["DESCRIPTION"]
     ver = version or cfg["VERSION"]
 
-    endpoints_html = ""
+    endpoints_html = "<br/><h2>API Endpoints:</h2>"
     for path in sorted(routes.keys()):
         endpoints_html += _build_endpoint_html(path, routes[path])
 
@@ -322,21 +332,24 @@ function tryEndpoint(path, epId) {{
     const resStatus = ep.querySelector('.response-status');
     const resBody = ep.querySelector('.response-body');
 
-    const params = new URLSearchParams();
+    // Collect named params
+    const params = {{}};
     inputs.forEach(inp => {{
-        if (inp.value) params.append(inp.dataset.name, inp.value);
+        if (inp.value) params[inp.dataset.name] = inp.value;
     }});
 
     // Collect extra kwargs from textarea
     const kwArea = ep.querySelector('.kwargs-input');
     if (kwArea && kwArea.value.trim()) {{
-        kwArea.value.trim().split('\\\\n').forEach(line => {{
+        kwArea.value.trim().split(/\\\\r?\\\\n/).forEach(line => {{
             const eq = line.indexOf('=');
-            if (eq > 0) {{
-                params.append(line.substring(0, eq).trim(), line.substring(eq + 1).trim());
-            }}
+            if (eq > 0) params[line.substring(0, eq).trim()] = line.substring(eq + 1).trim();
         }});
     }}
+
+    // Check for file uploads
+    const fileInput = ep.querySelector('.file-input');
+    const hasFiles = fileInput && fileInput.files.length > 0;
 
     let url = path;
     const opts = {{ method: method, headers: {{}} }};
@@ -348,10 +361,16 @@ function tryEndpoint(path, epId) {{
     if (user && pass_) opts.headers['Authorization'] = 'Basic ' + btoa(user + ':' + pass_);
 
     if (method === 'GET') {{
-        const qs = params.toString();
+        const qs = new URLSearchParams(params).toString();
         if (qs) url += '?' + qs;
+    }} else if (hasFiles) {{
+        const fd = new FormData();
+        for (const [k, v] of Object.entries(params)) fd.append(k, v);
+        for (const f of fileInput.files) fd.append('file', f);
+        opts.body = fd;
+        // Let browser set Content-Type with boundary
     }} else {{
-        opts.body = params;
+        opts.body = new URLSearchParams(params);
         opts.headers['Content-Type'] = 'application/x-www-form-urlencoded';
     }}
 
