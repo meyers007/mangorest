@@ -216,6 +216,8 @@ def generate_docs(routes, app_name="", version=""):
     .filter-bar {{ display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }}
     .filter-bar span {{ font-size: 13px; font-weight: 600; color: #555; }}
     .filter-btn {{ padding: 6px 16px; border: 1px solid #d0d0d0; border-radius: 20px; background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; color: #555; }}
+    .search-box {{ padding: 6px 14px; border: 1px solid #d0d0d0; border-radius: 20px; font-size: 13px; outline: none; width: 220px; margin-left: auto; }}
+    .search-box:focus {{ border-color: #49cc90; box-shadow: 0 0 0 2px rgba(73,204,144,0.15); }}
     .filter-btn:hover {{ background: #f0f0f0; }}
     .filter-btn.active {{ background: #3b4151; color: #fff; border-color: #3b4151; }}
     .filter-btn.mcp-filter.active {{ background: #8b5cf6; border-color: #8b5cf6; }}
@@ -376,6 +378,7 @@ def generate_docs(routes, app_name="", version=""):
         <button class="filter-btn active" onclick="filterEndpoints('all', this)">All ({len(routes)})</button>
         <button class="filter-btn mcp-filter" onclick="filterEndpoints('mcp', this)">🤖 MCP ({mcp_count})</button>
         <button class="filter-btn" onclick="filterEndpoints('rest', this)">REST ({len(routes) - mcp_count})</button>
+        <input type="text" class="search-box" id="endpointSearch" placeholder="🔍 Search endpoints..." oninput="searchEndpoints(this.value)" />
     </div>
     {endpoints_html}
 </div>
@@ -474,6 +477,19 @@ function logoutCookie() {{
         }}
     }} catch(e) {{}}
 }})();
+
+function searchEndpoints(query) {{
+    const q = query.toLowerCase().trim();
+    document.querySelectorAll('.endpoint').forEach(ep => {{
+        if (!q) {{ ep.style.display = ''; return; }}
+        const path = ep.querySelector('.endpoint-path')?.textContent.toLowerCase() || '';
+        const summary = ep.querySelector('.endpoint-summary')?.textContent.toLowerCase() || '';
+        const func = ep.querySelector('.endpoint-func')?.textContent.toLowerCase() || '';
+        ep.style.display = (path.includes(q) || summary.includes(q) || func.includes(q)) ? '' : 'none';
+    }});
+    // Reset filter buttons to 'All' active state
+    document.querySelectorAll('.filter-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+}}
 
 function filterEndpoints(filter, btn) {{
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
