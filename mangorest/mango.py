@@ -340,6 +340,11 @@ def Common(request):
         logp(f'*Check: {path} registered URLS: {_WEBAPI_ROUTES.keys()}')
         LOG_NUM -= 1
     
+    if path in ("/apis/test"):
+        for key in _WEBAPI_ROUTES.keys():
+            logp(f'*Check: {key}')
+        return HttpResponse("OK")
+        
     if path in ("/apis/doc", "/SHOW_ROUTES"):
         return showroutes(request)
     
