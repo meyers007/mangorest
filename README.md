@@ -86,6 +86,94 @@ There is no need to import any HTTP request objects or parse through them.
 I wanted my functions to be used in regular python and tested - at the same time become a web service.
 
 
+## @webapi Decorator Parameters
+
+The `@webapi` decorator registers a function as an API endpoint. It accepts these parameters:
+
+```python
+@webapi(url, auth=None, **kwargs)
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `url` | str | (required) | The URL path for the endpoint, e.g. `"/app1/test"` |
+| `auth` | function/bool | `None` | Set to `True` to require API key auth, or pass a custom auth function |
+| `doc` | str | `""` | Short description shown in API docs summary |
+| `version` | str | `""` | Version label for this endpoint |
+| `files` | bool | `False` | Set to `True` to enable file upload in the API docs UI |
+| `mcp` | bool | `False` | Flag for MCP-enabled endpoints |
+| `**kwargs` | any | | Any extra keyword args are stored and displayed as metadata badges in the docs |
+
+### Examples
+
+```python
+from mangorest.mango import webapi
+
+# Simple endpoint
+@webapi("/app1/test")
+def test(request, **kwargs):
+    return "Hello"
+
+# Endpoint with documentation, version, and auth
+@webapi("/app1/data", doc="Fetch data records", version="2.0", auth=True)
+def get_data(request, param1="default", param2="value", **kwargs):
+    '''
+    Fetch data records from the database.
+    Supports filtering by param1 and param2.
+    '''
+    return {"param1": param1, "param2": param2}
+
+# Endpoint that accepts file uploads
+@webapi("/app1/upload", files=True, doc="Upload a file")
+def upload(request, **kwargs):
+    for f in request.FILES.getlist('file'):
+        content = f.read()
+    return "Uploaded"
+```
+
+**Note:** The `request` parameter is automatically injected by the framework — it is excluded from the API docs UI. Only your custom parameters (e.g. `param1`, `param2`) are shown.
+
+
+## MANGO_SETTINGS (Django Settings)
+
+When using MangoREST inside a Django project, you can customize the API documentation page by adding `MANGO_SETTINGS` to your `settings.py`:
+
+```python
+# settings.py
+
+MANGO_SETTINGS = {
+    "TITLE": "My App API",
+    "DESCRIPTION": "REST API for My Application.",
+    "VERSION": "2.0.0",
+    "APK_KEY_STORE": "",
+}
+```
+
+### Default Values
+
+If `MANGO_SETTINGS` is not defined, or if any key is missing, these defaults are used:
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `TITLE` | `"API Documentation"` | Page title and heading |
+| `DESCRIPTION` | `"API for managing this app."` | Subtitle shown below the title |
+| `VERSION` | `"1.0.0"` | Version badge in the topbar |
+| `APK_KEY_STORE` | `""` | API key store reference (reserved) |
+
+
+## API Documentation UI
+
+MangoREST auto-generates a Swagger-like interactive API documentation page at `/apis/doc`.
+
+Features:
+* **Interactive Try It Out** — fill parameters and execute requests live
+* **File upload support** — for endpoints with `files=True`
+* **Authorization modal** — supports Basic Auth (username/password) and Cookie/Token/APK key auth
+* **Save credentials** — optionally save auth to browser cookies for persistence
+* **Auto-generated from code** — reads function signatures, docstrings, and `@webapi` kwargs
+* **Cached** — HTML is regenerated only when routes or settings change
+
+
 ## Roadmap
 
 With little more effort, you can - I will add these 

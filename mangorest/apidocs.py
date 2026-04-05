@@ -287,6 +287,7 @@ def generate_docs(routes, app_name="", version=""):
 <body>
 <div class="topbar">
     <a href="/" class="home-link">🏠 Home</a>
+    <a href="https://github.com/meyers007/mangorest.git" target="_blank" class="home-link">⚙ GitHub</a>
     <h1>🥭 {title}</h1>
     <span class="version">v{ver}</span>
 </div>
