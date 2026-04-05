@@ -397,9 +397,13 @@ def Common(request):
     
 #--------------------------------------------------------------------------------
 _WEBAPI_ROUTES={}
-def webapi(url, auth=None, **kwargs):
+def webapi(url, auth=None, mcp=False, **kwargs):
     if auth and not inspect.isfunction(auth):
         auth = AuthorizeAPIKEY
+    
+    # Store mcp flag in kwargs so apidocs/other modules can see it
+    if mcp:
+        kwargs["mcp"] = True
         
     if type(url) is not str:
         f = url
@@ -407,7 +411,9 @@ def webapi(url, auth=None, **kwargs):
         m = inspect.getfullargspec(f)
         print(f"Registering url: {url} {f} {type(url)}")
         _WEBAPI_ROUTES[url] = [f, m, auth, kwargs]
-        
+        if mcp:
+            from mangorest.mcpserver import register_tool
+            register_tool(url, f, m, auth, kwargs)
         return f
     
     def inner_decorator(f):
@@ -419,6 +425,9 @@ def webapi(url, auth=None, **kwargs):
         url1 = url1[:-1] if url1.endswith("/") else url1
         
         _WEBAPI_ROUTES[url1] = [f, m, auth, kwargs]
+        if mcp:
+            from mangorest.mcpserver import register_tool
+            register_tool(url1, f, m, auth, kwargs)
 
         return f
 
@@ -451,6 +460,14 @@ def main():
             ),
         )
     
+    # Start MCP server if any tools registered
+    try:
+        from mangorest.mcpserver import get_mcp_count, start_server
+        if get_mcp_count() > 0:
+            start_server(name=f"{__NAME__} MCP Server")
+    except Exception as e:
+        logger.debug(f"MCP server not started: {e}")
+
     argv = [c for c in sys.argv]
     if len(argv) <= 1:
         print(f'''** NOTICE ***\n\nUsing default port {PORT}

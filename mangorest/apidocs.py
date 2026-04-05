@@ -77,6 +77,7 @@ def _build_endpoint_html(path, route_info):
     requires_auth = "Yes" if auth else "No"
     ep_version = opts.get("version", "")
     accepts_files = opts.get("files", False)
+    is_mcp = opts.get("mcp", False)
     safe_id = path.replace("/", "_").replace(".", "_")
 
     # Build extra attributes from webapi kwargs
@@ -129,11 +130,14 @@ def _build_endpoint_html(path, route_info):
                     <input type="file" class="file-input" multiple style="margin-left:8px;font-size:13px;" />
                 </div>"""
 
+    mcp_badge = '<span class="mcp-badge">MCP</span>' if is_mcp else ''
+
     return f"""
-    <div class="endpoint" id="ep{safe_id}">
+    <div class="endpoint" id="ep{safe_id}" data-mcp="{'true' if is_mcp else 'false'}">
         <div class="endpoint-header" onclick="toggleEndpoint('ep{safe_id}')">
             <span class="method-badge get">GET</span>
             <span class="method-badge post">POST</span>
+            {mcp_badge}
             <span class="endpoint-path">{path}</span>
             <span class="endpoint-summary">{summary}</span>
             <span class="endpoint-func">{func_name}</span>
@@ -182,6 +186,8 @@ def generate_docs(routes, app_name="", version=""):
     desc = cfg["DESCRIPTION"]
     ver = version or cfg["VERSION"]
 
+    mcp_count = sum(1 for v in routes.values() if v[3].get("mcp", False))
+
     endpoints_html = "<br/><h2>API Endpoints:</h2>"
     for path in sorted(routes.keys()):
         endpoints_html += _build_endpoint_html(path, routes[path])
@@ -206,6 +212,13 @@ def generate_docs(routes, app_name="", version=""):
     .info-bar .stats {{ margin-top: 10px; display: flex; gap: 20px; }}
     .info-bar .stat {{ background: #f0f0f0; padding: 6px 14px; border-radius: 6px; font-size: 13px; }}
     .container {{ max-width: 1200px; margin: 20px auto; padding: 0 24px; }}
+    .mcp-badge {{ background: #8b5cf6; color: #fff; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; }}
+    .filter-bar {{ display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }}
+    .filter-bar span {{ font-size: 13px; font-weight: 600; color: #555; }}
+    .filter-btn {{ padding: 6px 16px; border: 1px solid #d0d0d0; border-radius: 20px; background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; color: #555; }}
+    .filter-btn:hover {{ background: #f0f0f0; }}
+    .filter-btn.active {{ background: #3b4151; color: #fff; border-color: #3b4151; }}
+    .filter-btn.mcp-filter.active {{ background: #8b5cf6; border-color: #8b5cf6; }}
     .auth-header {{ display: flex; align-items: center; justify-content: flex-end; margin-bottom: 12px; }}
     .btn-authorize {{ background: #fff; color: #49cc90; border: 2px solid #49cc90; padding: 8px 24px; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 14px; }}
     .btn-authorize:hover {{ background: #f0fdf4; }}
@@ -298,6 +311,7 @@ def generate_docs(routes, app_name="", version=""):
         <span class="stat">📡 {len(routes)} endpoints</span>
         <span class="stat">🔒 {sum(1 for v in routes.values() if v[2])} require auth</span>
         <span class="stat">🔓 {sum(1 for v in routes.values() if not v[2])} open</span>
+        <span class="stat">🤖 {mcp_count} MCP tools</span>
     </div>
 </div>
 <div class="container">
@@ -356,6 +370,12 @@ def generate_docs(routes, app_name="", version=""):
                 </div>
             </div>
         </div>
+    </div>
+    <div class="filter-bar">
+        <span>Filter:</span>
+        <button class="filter-btn active" onclick="filterEndpoints('all', this)">All ({len(routes)})</button>
+        <button class="filter-btn mcp-filter" onclick="filterEndpoints('mcp', this)">🤖 MCP ({mcp_count})</button>
+        <button class="filter-btn" onclick="filterEndpoints('rest', this)">REST ({len(routes) - mcp_count})</button>
     </div>
     {endpoints_html}
 </div>
@@ -454,6 +474,17 @@ function logoutCookie() {{
         }}
     }} catch(e) {{}}
 }})();
+
+function filterEndpoints(filter, btn) {{
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.endpoint').forEach(ep => {{
+        const isMcp = ep.dataset.mcp === 'true';
+        if (filter === 'all') ep.style.display = '';
+        else if (filter === 'mcp') ep.style.display = isMcp ? '' : 'none';
+        else ep.style.display = isMcp ? 'none' : '';
+    }});
+}}
 
 function toggleEndpoint(id) {{
     const el = document.getElementById(id);

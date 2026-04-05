@@ -91,7 +91,7 @@ I wanted my functions to be used in regular python and tested - at the same time
 The `@webapi` decorator registers a function as an API endpoint. It accepts these parameters:
 
 ```python
-@webapi(url, auth=None, **kwargs)
+@webapi(url, auth=None, mcp=False, **kwargs)
 ```
 
 | Parameter | Type | Default | Description |
@@ -101,7 +101,7 @@ The `@webapi` decorator registers a function as an API endpoint. It accepts thes
 | `doc` | str | `""` | Short description shown in API docs summary |
 | `version` | str | `""` | Version label for this endpoint |
 | `files` | bool | `False` | Set to `True` to enable file upload in the API docs UI |
-| `mcp` | bool | `False` | Flag for MCP-enabled endpoints |
+| `mcp` | bool | `False` | Expose this endpoint as an MCP (Model Context Protocol) tool |
 | `**kwargs` | any | | Any extra keyword args are stored and displayed as metadata badges in the docs |
 
 ### Examples
@@ -129,6 +129,11 @@ def upload(request, **kwargs):
     for f in request.FILES.getlist('file'):
         content = f.read()
     return "Uploaded"
+
+# Endpoint exposed as an MCP tool
+@webapi("/app1/process", mcp=True, auth=True, doc="Process data")
+def process(request, query="", **kwargs):
+    return {"result": f"Processed: {query}"}
 ```
 
 **Note:** The `request` parameter is automatically injected by the framework — it is excluded from the API docs UI. Only your custom parameters (e.g. `param1`, `param2`) are shown.
@@ -172,6 +177,36 @@ Features:
 * **Save credentials** — optionally save auth to browser cookies for persistence
 * **Auto-generated from code** — reads function signatures, docstrings, and `@webapi` kwargs
 * **Cached** — HTML is regenerated only when routes or settings change
+
+
+## MCP Server (Model Context Protocol)
+
+MangoREST can expose endpoints as MCP tools, allowing AI assistants (e.g. Claude, Cursor, Windsurf) to call your APIs directly.
+
+### Setup
+
+1. Install the MCP package:
+```
+pip install mcp[cli]
+```
+
+2. Mark endpoints with `mcp=True`:
+```python
+@webapi("/app1/process", mcp=True, doc="Process data")
+def process(request, query="", **kwargs):
+    return {"result": f"Processed: {query}"}
+```
+
+3. The MCP server starts automatically when `main()` is called, if any endpoints have `mcp=True`. It runs in a background thread alongside Django.
+
+### How it works
+
+- Endpoints marked with `mcp=True` are registered as MCP tools in `mangorest/mcpserver.py`
+- Function parameters (excluding `request`) become tool input parameters
+- The MCP server only loads if at least one endpoint has `mcp=True`
+- If the `mcp` package is not installed, a warning is logged but the app runs normally
+- MCP endpoints are highlighted with a purple **MCP** badge in the API docs at `/apis/doc`
+- The docs UI includes filter buttons to show All / MCP / REST endpoints
 
 
 ## Roadmap
