@@ -3,12 +3,14 @@ MCP (Model Context Protocol) Server for MangoREST.
 Automatically exposes @webapi endpoints marked with mcp=True as MCP tools.
 This module is only activated when at least one endpoint has mcp=True.
 """
-import inspect
-import json
-import threading
-import logging
+import inspect, json, threading, logging, os
+from django.conf import settings as django_settings
 
 logger = logging.getLogger(__name__)
+
+MCP_SERVER_NAME = "MCP Server"
+if django_settings:
+    MCP_SERVER_NAME = getattr(django_settings, "MCP_SERVER_NAME", "MCP Server")
 
 # Registry of MCP-enabled tools
 _MCP_TOOLS = {}
@@ -58,6 +60,10 @@ def register_tool(url, func, argspec, auth, opts):
         "url": url,
     }
     logger.info(f"MCP tool registered: {tool_name} -> {url}")
+    __NAME__    = "Sada MCP Server"
+
+    if  get_mcp_count() > 0 and not get_server_status()["started"]:
+        start_server(name=MCP_SERVER_NAME)
 
 
 def get_mcp_tools():
