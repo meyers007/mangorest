@@ -100,19 +100,79 @@ def getparms(request):
     
     return par;
 
+#-------------------------------------------------------------------------------  -
+#--------------------------------------------------------------------------------
+# Argspec cache + async dispatch helpers.
+# - get_argspec(fn) memoizes inspect.getfullargspec so TryRunPyMethod and
+#   other ad-hoc dispatch paths pay the introspection cost only once.
+# - start_async_job(method, request, par) runs the target in a thread
+#   using mangorest.AsyncJobs and returns a job_id response immediately.
+#   Enabled for any webapi by sending `_async_call=1`.
+#--------------------------------------------------------------------------------
+_ARGS_CACHE = {}
+def get_argspec(method):
+    key = id(method)
+    spec = _ARGS_CACHE.get(key)
+    if spec is None:
+        spec = inspect.getfullargspec(method)
+        _ARGS_CACHE[key] = spec
+    return spec
+
+def _inject_job(par, args, job):
+    if args.varkw is not None:
+        par["job"] = job
+    elif "job" in (args.args or []) or "job" in (args.kwonlyargs or []):
+        par["job"] = job
+    return par
+
+def start_async_job(method, request, par, args=None, job_name=None, target_label=None):
+    import threading, uuid
+    from mangorest.AsyncJobs import AsyncJobs
+    if args is None:
+        args = get_argspec(method)
+    user = par.get("user")
+    if not user:
+        try:
+            user = getattr(getattr(request, "user", None), "username", None)
+        except Exception:
+            user = None
+    user = str(user) if user else "anonymous"
+    par["user"] = user
+    job_id = uuid.uuid4().hex[:12]
+    label = target_label or f"{method.__module__}.{method.__name__}"
+    job = AsyncJobs(job_id, target=label,
+                    job_name=job_name or par.get("job_name"), user=user)
+    job.start()
+    _inject_job(par, args, job)
+    def _runner():
+        try:
+            ret = method(**par)
+        except Exception as exc:
+            logger.exception(f"async job {job_id} target raised")
+            job.error(exc)
+            return
+        if not job.is_terminal():
+            job.end(result=ret)
+    threading.Thread(target=_runner, daemon=True).start()
+    return JsonResponse({"job_id": job_id})
+
 #--------------------------------------------------------------------------------
 def CallMethod(method, request, args=None):
-    if(args is None):
-        args = inspect.getfullargspec(method)
-    
-    if (args.varkw == None ):
-        return method(request)
-    
-    par = getparms(request)
+    if args is None:
+        args = get_argspec(method)
 
-    for k in ["csrfmiddlewaretoken", "auth"]:
-        if k in par:
-            del par[k]
+    if args.varkw is None:
+        return method(request)
+
+    par = getparms(request)
+    #for k in ["csrfmiddlewaretoken", "auth"]:
+    #    if k in par:
+    #        del par[k]
+
+    if par.pop("_async_call", None):
+        job_name = par.pop("job_name", None)
+        return start_async_job(method, request, par, args=args, job_name=job_name)
+
     try:
         logger.info(f"{method.__module__}.{method.__name__}")
         ret = method(**par)
@@ -120,27 +180,21 @@ def CallMethod(method, request, args=None):
         logger.error(e)
         logger.exception(e)
         raise e
-        
+
     if ('content_type' in par and par['content_type'] == 'json'):
         if (type(ret) == str):
             ret = json.loads(ret)
-            
         return JsonResponse(ret, safe=False)
 
     if (isinstance(ret, django.http.response.HttpResponseBase) ):
-        return ret;
-    
+        return ret
+
     if (type(ret) != str and type(ret) != bytes ):
         ret = json.dumps(ret, cls=myEncoder)
-    
-    response = HttpResponse(ret)        
+
+    response = HttpResponse(ret)
     response.headers["Access-Control-Allow-Origin"] = "*"
-            
-    #print(f"""
-    #      ****** Retruning *****
-    #      {response.headers["Access-Control-Allow-Origin"] }
-    #      """)
-    return response #, content_type="text/plain")
+    return response
 #--------------------------------------------------------------------------------
 def TryRunPyMethod(request):
     rpaths = [c for c in request.path.split("/") if (c) ];
