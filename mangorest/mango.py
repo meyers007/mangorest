@@ -70,16 +70,34 @@ def Debug(request, APPNAME=''):
     return HttpResponse(ret);
 #--------------------------------------------------------------------------------
 class myEncoder(DjangoJSONEncoder):
+    """JSON encoder that handles numpy / pandas types transparently.
+
+    Covers np.bool_, all numpy integer and floating variants, numpy
+    arrays, pandas Timestamps, and datetime objects so that any
+    JsonResponse or json.dumps call using this encoder never fails
+    on common scientific-Python types.
+    """
     def default(self, obj):
         import numpy as np
         import pandas as pd
-        if isinstance(obj, np.int64):
+        if isinstance(obj, (np.bool_,)):
+            return bool(obj)
+        if isinstance(obj, (np.integer,)):
             return int(obj)
-        elif isinstance(obj, pd._libs.tslibs.timestamps.Timestamp) or \
+        if isinstance(obj, (np.floating,)):
+            f = float(obj)
+            return None if f != f else f   # NaN → None
+        if isinstance(obj, (np.ndarray,)):
+            return obj.tolist()
+        if isinstance(obj, pd._libs.tslibs.timestamps.Timestamp) or \
                 isinstance(obj, datetime.datetime):
             return str(obj)
-        else:
-            return super(DjangoJSONEncoder, self).default(obj)
+        return super(DjangoJSONEncoder, self).default(obj)
+
+# Make every JsonResponse in the project use myEncoder automatically,
+# so numpy bool_, integer, floating, ndarray, and pandas Timestamp
+# are always serialisable without callers needing to pass encoder=.
+JsonResponse.__init__.__defaults__ = (myEncoder, True, None)
 #--------------------------------------------------------------------------------
 def getparms(request):
     par = dict(request.GET)
