@@ -23,7 +23,19 @@ from datetime import datetime
 _JOBS: dict[str, dict] = {}
 _LOCK = threading.Lock()
 
+# Producer-consumer: waiters block on _CONDITION until _change_seq advances.
+_CONDITION = threading.Condition()
+_change_seq = 0
+
 _TERMINAL_PREFIXES = ("done", "error", "cancelled")
+
+
+def _notify():
+    """Signal all waiters that the job registry has changed."""
+    global _change_seq
+    with _CONDITION:
+        _change_seq += 1
+        _CONDITION.notify_all()
 
 
 def _is_terminal(status: str) -> bool:
@@ -55,12 +67,14 @@ class AsyncJobs:
                 "kwargs":   kwargs,
             }
         self._job = _JOBS[job_id]
+        _notify()
 
     # ---- lifecycle -------------------------------------------------------
     def start(self, message: str = "starting"):
         self._job["start"]   = datetime.now()
         self._job["status"]  = "running"
         self._job["message"] = f"{message} @ {self._job['start']}"
+        _notify()
         return self
 
     def running(self, message=None, result=None, percent_complete=None):
@@ -72,6 +86,7 @@ class AsyncJobs:
         # keep status as 'running' unless a terminal state was already set
         if not _is_terminal(self._job.get("status", "")):
             self._job["status"] = "running"
+        _notify()
         return self
 
     def end(self, result=None, status: str = "done", message: str | None = None):
@@ -81,18 +96,21 @@ class AsyncJobs:
         took = (self._job["end"] - self._job["start"]) if self._job.get("start") else None
         self._job["status"] = f"{status} @ {self._job['end']} took: {took}"
         self._job["percent_complete"] = 100
+        _notify()
         return self
 
     def error(self, exc):
         self._job["end"]     = datetime.now()
         self._job["status"]  = f"error @ {self._job['end']}"
         self._job["message"] = str(exc)
+        _notify()
         return self
 
     def cancel(self, message: str = "cancelled by user"):
         self._job["end"]     = datetime.now()
         self._job["status"]  = f"cancelled @ {self._job['end']}"
         self._job["message"] = message
+        _notify()
         return self
 
     # ---- inspection ------------------------------------------------------
@@ -149,10 +167,28 @@ class AsyncJobs:
             if job_id:
                 if _JOBS.pop(job_id, None) is not None:
                     removed.append(job_id)
+                if removed:
+                    _notify()
                 return {"removed": removed}
             for jid, job in list(_JOBS.items()):
                 if _is_terminal(job.get("status", "")):
                     if (not only_fetched) or job.get("fetched"):
                         _JOBS.pop(jid, None)
                         removed.append(jid)
+        if removed:
+            _notify()
         return {"removed": removed}
+
+    @classmethod
+    def change_seq(cls) -> int:
+        """Return the current change sequence number."""
+        return _change_seq
+
+    @classmethod
+    def wait_for_change(cls, last_seq: int = 0, timeout: float = 30) -> int:
+        """Block until the registry changes (seq > last_seq) or timeout.
+        Returns the current change sequence number."""
+        with _CONDITION:
+            if _change_seq <= last_seq:
+                _CONDITION.wait(timeout=timeout)
+            return _change_seq
